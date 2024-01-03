@@ -7,6 +7,8 @@ Todo:
 - ~~Implement frequency~~
 - ~~revert example to fixed phase increment, add frequency variable to paTestData struct~~
 - ~~add other wave shape tables and hardcode blend sweep~~
+- fix saw wave - the weighting doesn't make sense on edge cases. if you try to interpolate between a value near one and value near minus two you'll get an erroneous value
+
 - implement basic triangle wavefolding
 - Implement stereo detune
 - Implement midi in
