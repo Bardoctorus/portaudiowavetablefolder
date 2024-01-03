@@ -6,6 +6,9 @@
 #define NUM_SECONDS (5)
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER (64)
+#define DEFAULT_FREQ 100.0
+#define DEFAULT_AMPLITUDE 0.1
+#define DEFAULT_WAVE_POSITION 0.5
 
 #ifndef M_PI
 #define M_PI (3.14159265)
@@ -14,11 +17,13 @@
 #define TABLE_SIZE (512)
 typedef struct {
   float sine[TABLE_SIZE];
+  float saw[TABLE_SIZE];
   char message[20];
   float readPointer;
   float frequency;
   float amplitude;
   float detune;
+  float wavePosition;
 } paTestData;
 
 static int patestCallback(const void *inputBuffer, void *outputBuffer,
@@ -33,8 +38,6 @@ static int patestCallback(const void *inputBuffer, void *outputBuffer,
   (void)inputBuffer;
 
   for (i = 0; i < framesPerBuffer; i++) {
-    //  data->readPointer = TABLE_SIZE * data->frequency/SAMPLE_RATE; // 2.55ish
-    //  when the freq is 220, table is 512 and sample rate 44100
     int WaveTableIndexBelow = floorf(data->readPointer);
     int WaveTableIndexAbove = WaveTableIndexBelow + 1;
     if (WaveTableIndexAbove >= TABLE_SIZE) {
@@ -43,18 +46,19 @@ static int patestCallback(const void *inputBuffer, void *outputBuffer,
     float aboveFraction = data->readPointer - WaveTableIndexBelow;
     float belowFraction = 1.0 - aboveFraction;
 
-    float leftOutValue =
-        data->amplitude * (belowFraction * data->sine[WaveTableIndexBelow] +
-                           aboveFraction * data->sine[WaveTableIndexAbove]);
-    float rightOutValue =
-        data->amplitude * (belowFraction * data->sine[WaveTableIndexBelow] +
-                           aboveFraction * data->sine[WaveTableIndexAbove]);
+    float outValue =
+        data->amplitude * (
+                          (belowFraction * data->saw[WaveTableIndexBelow] +
+                           aboveFraction * data->saw[WaveTableIndexAbove])*(1-data->wavePosition))
+                        +
+                           ((belowFraction * data->sine[WaveTableIndexBelow] +
+                           aboveFraction * data->sine[WaveTableIndexAbove])*data->wavePosition);
     data->readPointer += TABLE_SIZE * data->frequency / SAMPLE_RATE;
     while (data->readPointer >= TABLE_SIZE) {
       data->readPointer -= TABLE_SIZE;
     }
-    *out++ =  leftOutValue;/* left */
-    *out++ = leftOutValue; /* right */
+    *out++ =  outValue;/* left */
+    *out++ = outValue; /* right */
 //    printf("General Out Value: %f, Left Out: %f, Right Out: %f\n", outValue, leftOut, rightOut);
   }
 
@@ -90,9 +94,16 @@ int main(void) {
   for (i = 0; i < TABLE_SIZE; i++) {
     data.sine[i] = (float)sin(((double)i / (double)TABLE_SIZE) * M_PI * 2.);
   }
+  float sawCount = 0.0;
+  for (i = 0; i < TABLE_SIZE; i++){
+    data.saw[i] = sawCount;
+    sawCount+=0.01;
+    if(sawCount >=1.0f) sawCount -= 2.0f;
+  }
   data.readPointer = 0;
-  data.frequency = 220;
-  data.amplitude = 0.5;
+  data.frequency = DEFAULT_FREQ;
+  data.amplitude = DEFAULT_AMPLITUDE;
+  data.wavePosition = DEFAULT_WAVE_POSITION;
   data.detune = 0;
   err = Pa_Initialize();
   if (err != paNoError)
@@ -127,10 +138,13 @@ int main(void) {
   if (err != paNoError)
     goto error;
   float count = 0;
+  float sweep = 0;
   while (count <20000)
   {
+    data.wavePosition = 0.5*((sin(sweep)+1)/2);
   data.frequency+=0.02;
   Pa_Sleep(1);
+  sweep+=0.005;
   count++;
   }
 
