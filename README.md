@@ -1,12 +1,19 @@
-# This is already basically a wavetable, you just need to interpolate.
+# Wavetable and Wavefolding Synth using Portaudio
 
-## 29/12/23 17:28 -> revert example to fixed phase increment, add frequency variable to paTestData struct
+
 
 Todo: 
 
-- Implement frequency
+- ~~Implement frequency~~
+- ~~revert example to fixed phase increment, add frequency variable to paTestData struct~~
+- add other wave shape tables and hardcode blend sweep
+- implement basic triangle wavefolding
 - Implement stereo detune
+- Implement midi in
+- Alternate control? Seperate python webserver for GUI?
 
+
+Below is legacy scribblings
 _________
 # Then make another and do some wave table blending
 If you make other wavetables for commons shapes, you can blend between them using exactly the same weighting idea as you need to use to increment using float values
