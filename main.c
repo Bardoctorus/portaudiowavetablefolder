@@ -6,7 +6,7 @@
 #define NUM_SECONDS (5)
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER (64)
-#define DEFAULT_FREQ 100.0
+#define DEFAULT_FREQ 220.0
 #define DEFAULT_AMPLITUDE 0.1
 #define DEFAULT_WAVE_POSITION 0.5
 
@@ -14,7 +14,7 @@
 #define M_PI (3.14159265)
 #endif
 
-#define TABLE_SIZE (512)
+#define TABLE_SIZE (2048)
 typedef struct {
   float sine[TABLE_SIZE];
   float saw[TABLE_SIZE];
@@ -97,7 +97,7 @@ int main(void) {
   float sawCount = 0.0;
   for (i = 0; i < TABLE_SIZE; i++){
     data.saw[i] = sawCount;
-    sawCount+=0.01;
+    sawCount+=0.001;
     if(sawCount >=1.0f) sawCount -= 2.0f;
   }
   data.readPointer = 0;
@@ -142,10 +142,11 @@ int main(void) {
   while (count <20000)
   {
     data.wavePosition = 0.5*((sin(sweep)+1)/2);
-  data.frequency+=0.02;
-  Pa_Sleep(1);
-  sweep+=0.005;
-  count++;
+    data.frequency+=0.05;
+    Pa_Sleep(1);
+    sweep+=0.005;
+    count++;
+    printf("freq: %f\n",data.frequency);
   }
 
   err = Pa_StopStream(stream);
