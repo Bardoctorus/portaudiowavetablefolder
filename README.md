@@ -8,8 +8,11 @@ Todo:
 - ~~revert example to fixed phase increment, add frequency variable to paTestData struct~~
 - ~~add other wave shape tables and hardcode blend sweep~~
 - ~~fix saw wave - the weighting doesn't make sense on edge cases. if you try to interpolate between a value near one and value near minus two you'll get an erroneous value~~
-- check that raising wavetable size has fixed sawtooth aliasing - it sounds like it, how can you be sure?
+- check that raising wavetable size has fixed sawtooth aliasing - it sounds like it, how can you be sure? EDIT: It hasn't. try oversampling
 
+
+- Oversample wavetables
+- test with arbitrary wavetables that there's no aliasing.
 - implement basic triangle wavefolding
 - Implement stereo detune
 - Implement midi in
