@@ -26,6 +26,24 @@ typedef struct {
   float wavePosition;
 } paTestData;
 
+float interpolatedWavetableValue(paTestData *data){
+  int WaveTableIndexBelow = floorf(data->readPointer);
+    int WaveTableIndexAbove = WaveTableIndexBelow + 1;
+    if (WaveTableIndexAbove >= TABLE_SIZE) {
+      WaveTableIndexAbove = 0;
+    };
+    float aboveFraction = data->readPointer - WaveTableIndexBelow;
+    float belowFraction = 1.0 - aboveFraction;
+
+return (
+                          (belowFraction * data->saw[WaveTableIndexBelow] +
+                           aboveFraction * data->saw[WaveTableIndexAbove])*(1-data->wavePosition))
+                        +
+                           ((belowFraction * data->sine[WaveTableIndexBelow] +
+                           aboveFraction * data->sine[WaveTableIndexAbove])*data->wavePosition);
+
+
+}
 static int patestCallback(const void *inputBuffer, void *outputBuffer,
                           unsigned long framesPerBuffer,
                           const PaStreamCallbackTimeInfo *timeInfo,
@@ -38,28 +56,14 @@ static int patestCallback(const void *inputBuffer, void *outputBuffer,
   (void)inputBuffer;
 
   for (i = 0; i < framesPerBuffer; i++) {
-    int WaveTableIndexBelow = floorf(data->readPointer);
-    int WaveTableIndexAbove = WaveTableIndexBelow + 1;
-    if (WaveTableIndexAbove >= TABLE_SIZE) {
-      WaveTableIndexAbove = 0;
-    };
-    float aboveFraction = data->readPointer - WaveTableIndexBelow;
-    float belowFraction = 1.0 - aboveFraction;
+        float outValue = data->amplitude * interpolatedWavetableValue(data); 
 
-    float outValue =
-        data->amplitude * (
-                          (belowFraction * data->saw[WaveTableIndexBelow] +
-                           aboveFraction * data->saw[WaveTableIndexAbove])*(1-data->wavePosition))
-                        +
-                           ((belowFraction * data->sine[WaveTableIndexBelow] +
-                           aboveFraction * data->sine[WaveTableIndexAbove])*data->wavePosition);
-    data->readPointer += TABLE_SIZE * data->frequency / SAMPLE_RATE;
+      data->readPointer += TABLE_SIZE * data->frequency / SAMPLE_RATE;
     while (data->readPointer >= TABLE_SIZE) {
       data->readPointer -= TABLE_SIZE;
     }
     *out++ =  outValue;/* left */
     *out++ = outValue; /* right */
-//    printf("General Out Value: %f, Left Out: %f, Right Out: %f\n", outValue, leftOut, rightOut);
   }
 
   return paContinue;
@@ -141,7 +145,7 @@ int main(void) {
   float sweep = 0;
   while (count <20000)
   {
-    data.wavePosition = 0.5*((sin(sweep)+1)/2);
+    data.wavePosition = 0;//.5*((sin(sweep)+1)/2);
     data.frequency+=0.05;
     Pa_Sleep(1);
     sweep+=0.005;
