@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <time.h>
-
+#define RUNNING
 #define NUM_SECONDS (5)
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER (64)
@@ -101,9 +101,16 @@ int main(void) {
   float sawCount = 0.0;
   for (i = 0; i < TABLE_SIZE; i++){
     data.saw[i] = sawCount;
-    sawCount+=0.001;
+    sawCount+=0.01;
     if(sawCount >=1.0f) sawCount -= 2.0f;
   }
+/*
+ *    2048
+ *
+ */
+
+
+
   data.readPointer = 0;
   data.frequency = DEFAULT_FREQ;
   data.amplitude = DEFAULT_AMPLITUDE;
@@ -143,6 +150,8 @@ int main(void) {
     goto error;
   float count = 0;
   float sweep = 0;
+
+#if defined RUNNING
   while (count <20000)
   {
     data.wavePosition = 0;//.5*((sin(sweep)+1)/2);
@@ -152,6 +161,8 @@ int main(void) {
     count++;
     printf("freq: %f\n",data.frequency);
   }
+#endif
+
 
   err = Pa_StopStream(stream);
   if (err != paNoError)
